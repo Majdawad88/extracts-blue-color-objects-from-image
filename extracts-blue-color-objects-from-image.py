@@ -25,6 +25,7 @@ def cleanup_and_exit():
 signal.signal(signal.SIGINT, lambda s, f: cleanup_and_exit())
 signal.signal(signal.SIGTERM, lambda s, f: cleanup_and_exit())
 
+
 picam2.preview_configuration.main.size = (1280, 720)
 picam2.preview_configuration.main.format = "RGB888"
 picam2.configure("preview")
@@ -49,7 +50,32 @@ try:
             cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
             cv2.circle(frame, mid, 5, (255, 255, 255), -1)
             cv2.putText(frame, f"{mid}", (midx + 8, midy - 8),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2)
+
+picam2.preview_configuration.main.size = (1280, 720)
+picam2.preview_configuration.main.format = "RGB888"
+picam2.configure("preview")
+picam2.start()
+time.sleep(0.3)
+
+try:
+    while True:
+        frame = picam2.capture_array()
+        blur = cv2.blur(frame, (15, 15))
+        hsv  = cv2.cvtColor(blur, cv2.COLOR_BGR2HSV)
+        mask = cv2.inRange(hsv, lowerLimitBlue, upperLimitBlue)
+
+        contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+
+        if contours:
+            c = max(contours, key=cv2.contourArea)
+            x, y, w, h = cv2.boundingRect(c)
+            midx, midy = int(x + w / 2), int(y + h / 2)
+            mid = (midx, midy)
+
+            cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+            cv2.circle(frame, mid, 5, (255, 255, 255), -1)
+            cv2.putText(frame, f"{mid}", (midx + 8, midy - 8),
+                      cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2)
         else:
             cv2.putText(frame, "No blue region detected", (30, 60),
                         cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 3)
@@ -62,3 +88,6 @@ try:
             break
 finally:
     cleanup_and_exit()
+
+
+
