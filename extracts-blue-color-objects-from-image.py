@@ -1,4 +1,4 @@
-#git clone
+#git clone https://github.com/Majdawad88/extracts-blue-color-objects-from-image.git
 from picamera2 import Picamera2
 import cv2, time
 import numpy as np
